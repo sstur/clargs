@@ -29,8 +29,9 @@ function defineSchema<
     (name: string) => ArgDef<string, string, ArgType, boolean>
   >,
 >(
-  object: O,
+  definer: (arg: ArgDefiner) => O,
 ): { [K in keyof O]: Expand<{ name: K } & Omit<ReturnType<O[K]>, 'name'>> } {
+  const object = definer(arg);
   return Object.fromEntries(
     Object.entries(object).map(
       ([name, getter]) => [name, getter(name)] as const,
@@ -72,7 +73,9 @@ function arg<
     ({ name, ...withDefaults(input) } as any);
 }
 
-const _result = defineSchema({
+type ArgDefiner = typeof arg;
+
+const _result = defineSchema((arg) => ({
   foo: arg({ alias: 'f', description: 'Foo' }),
   bar: arg({ alias: 'b', description: 'Bar' }),
-});
+}));
