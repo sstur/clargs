@@ -1,22 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-type ArgType = 'boolean' | 'string';
+type ArgType = 'flag' | 'arg';
 
-type ArgDefInput<A extends string, T extends ArgType, M extends boolean> = {
-  alias?: A;
+type ArgDefInput<T extends ArgType, M extends boolean> = {
+  alias?: string;
   typeLabel?: string;
   description: string;
   type?: T;
   multiple?: M;
 };
 
-type ArgDef<
-  N extends string,
-  A extends string,
-  T extends ArgType,
-  M extends boolean,
-> = {
+type ArgDef<N extends string, T extends ArgType, M extends boolean> = {
   name: N;
-  alias: A;
+  alias: string;
   typeLabel: string;
   description: string;
   type: T;
@@ -24,10 +19,7 @@ type ArgDef<
 };
 
 function defineSchema<
-  O extends Record<
-    string,
-    (name: string) => ArgDef<string, string, ArgType, boolean>
-  >,
+  O extends Record<string, (name: string) => ArgDef<string, ArgType, boolean>>,
 >(
   definer: (arg: ArgDefiner) => O,
 ): { [K in keyof O]: Expand<{ name: K } & Omit<ReturnType<O[K]>, 'name'>> } {
@@ -39,18 +31,18 @@ function defineSchema<
   ) as any;
 }
 
-type WithDefaults<I extends ArgDefInput<string, ArgType, boolean>> =
-  I extends ArgDefInput<infer A, infer T, infer M>
+type WithDefaults<I extends ArgDefInput<ArgType, boolean>> =
+  I extends ArgDefInput<infer T, infer M>
     ? {
-        alias: string extends A ? '_' : A;
+        alias: string;
         typeLabel: string;
         description: string;
-        type: ArgType extends T ? 'string' : T;
+        type: ArgType extends T ? 'arg' : T;
         multiple: [M] extends [true] ? true : false;
       }
     : never;
 
-function withDefaults<I extends ArgDefInput<string, ArgType, boolean>>(
+function withDefaults<I extends ArgDefInput<ArgType, boolean>>(
   input: I,
 ): WithDefaults<I> {
   const { alias, typeLabel, description, type, multiple } = input;
@@ -58,17 +50,14 @@ function withDefaults<I extends ArgDefInput<string, ArgType, boolean>>(
     alias: alias ?? '_',
     typeLabel: typeLabel ?? '',
     description,
-    type: type ?? 'string',
+    type: type ?? 'arg',
     multiple: multiple ?? false,
   } as any;
 }
 
-function arg<
-  A extends string,
-  T extends ArgType,
-  M extends boolean,
-  I extends ArgDefInput<A, T, M>,
->(input: I) {
+function arg<T extends ArgType, M extends boolean, I extends ArgDefInput<T, M>>(
+  input: I,
+) {
   return <N extends string>(name: N): Expand<{ name: N } & WithDefaults<I>> =>
     ({ name, ...withDefaults(input) } as any);
 }
