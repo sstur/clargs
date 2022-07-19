@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 type ArgDef = {
   type: 'arg';
   alias?: string;
@@ -6,16 +5,16 @@ type ArgDef = {
   description: string;
 };
 
+type ArgDefInput = Omit<ArgDef, 'type'>;
+
 type ArgListDef = {
-  type: 'list';
+  type: 'argList';
   alias?: string;
   typeLabel: string;
   description: string;
 };
 
-type ArgDefInput<M extends boolean> = Expand<
-  Omit<ArgDef, 'type'> & { multiple?: M }
->;
+type ArgListDefInput = Omit<ArgListDef, 'type'>;
 
 type FlagDef = {
   type: 'flag';
@@ -29,27 +28,27 @@ type OptionDef = ArgDef | ArgListDef | FlagDef;
 
 type Definers = {
   arg: ArgDefiner;
+  argList: ArgListDefiner;
   flag: FlagDefiner;
 };
 
 function defineSchema<O extends Record<string, OptionDef>>(
   getSchema: (definers: Definers) => O,
 ) {
-  return getSchema({ arg, flag });
+  return getSchema({ arg, argList, flag });
 }
 
-// TODO: Should we split this up into two functions?
-function arg<M extends boolean>(
-  input: ArgDefInput<M>,
-): [M] extends [true] ? ArgListDef : ArgDef {
-  const { multiple, ...rest } = input;
-  const result = multiple
-    ? { type: 'list', ...rest }
-    : { type: 'arg', ...rest };
-  return result as any;
+function arg(input: ArgDefInput): ArgDef {
+  return { type: 'arg', ...input };
 }
 
 type ArgDefiner = typeof arg;
+
+function argList(input: ArgListDefInput): ArgListDef {
+  return { type: 'argList', ...input };
+}
+
+type ArgListDefiner = typeof argList;
 
 function flag(input: Expand<FlagDefInput>): FlagDef {
   return { type: 'flag', ...input };
@@ -63,7 +62,7 @@ type ExtractType<D extends OptionDef> = D['type'] extends 'flag'
   ? boolean
   : D['type'] extends 'arg'
   ? string
-  : D['type'] extends 'list'
+  : D['type'] extends 'argList'
   ? Array<string>
   : never;
 
@@ -75,7 +74,8 @@ type ParsedResult<O extends Record<string, OptionDef>> = {
 
 const _result = defineSchema(({ arg, flag }) => ({
   foo: arg({ alias: 'f', typeLabel: '<foo>', description: 'Foo' }),
-  bar: flag({ alias: 'b', description: 'Bar' }),
+  bar: argList({ alias: 'b', typeLabel: '<bar>', description: 'Bar' }),
+  baz: flag({ alias: 'z', description: 'Baz' }),
 }));
 
 type Foo = ParsedResult<typeof _result>;
