@@ -1,14 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-type ArgDef<M extends boolean> = {
+type ArgDef = {
   type: 'arg';
   alias?: string;
   typeLabel: string;
   description: string;
-  multiple: M;
+};
+
+type ArgListDef = {
+  type: 'list';
+  alias?: string;
+  typeLabel: string;
+  description: string;
 };
 
 type ArgDefInput<M extends boolean> = Expand<
-  Omit<ArgDef<M>, 'type' | 'multiple'> & { multiple?: M }
+  Omit<ArgDef, 'type'> & { multiple?: M }
 >;
 
 type FlagDef = {
@@ -19,26 +25,27 @@ type FlagDef = {
 
 type FlagDefInput = Omit<FlagDef, 'type'>;
 
-type OptionDef<M extends boolean> = ArgDef<M> | FlagDef;
+type OptionDef = ArgDef | ArgListDef | FlagDef;
 
 type Definers = {
   arg: ArgDefiner;
   flag: FlagDefiner;
 };
 
-function defineSchema<O extends Record<string, OptionDef<boolean>>>(
+function defineSchema<O extends Record<string, OptionDef>>(
   getSchema: (definers: Definers) => O,
 ) {
   return getSchema({ arg, flag });
 }
 
+// TODO: Should we split this up into two functions?
 function arg<M extends boolean>(
   input: ArgDefInput<M>,
-): [M] extends [true] ? ArgDef<true> : ArgDef<false> {
+): [M] extends [true] ? ArgListDef : ArgDef {
   const { multiple, ...rest } = input;
   const result = multiple
-    ? { type: 'arg', multiple: true, ...rest }
-    : { type: 'arg', multiple: false, ...rest };
+    ? { type: 'list', ...rest }
+    : { type: 'arg', ...rest };
   return result as any;
 }
 
