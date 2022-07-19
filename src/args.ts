@@ -57,7 +57,25 @@ function flag(input: Expand<FlagDefInput>): FlagDef {
 
 type FlagDefiner = typeof flag;
 
+// ==========
+
+type ExtractType<D extends OptionDef> = D['type'] extends 'flag'
+  ? boolean
+  : D['type'] extends 'arg'
+  ? string
+  : D['type'] extends 'list'
+  ? Array<string>
+  : never;
+
+type ParsedResult<O extends Record<string, OptionDef>> = {
+  [K in keyof O]: ExtractType<O[K]>;
+};
+
+// ==========
+
 const _result = defineSchema(({ arg, flag }) => ({
   foo: arg({ alias: 'f', typeLabel: '<foo>', description: 'Foo' }),
   bar: flag({ alias: 'b', description: 'Bar' }),
 }));
+
+type Foo = ParsedResult<typeof _result>;
