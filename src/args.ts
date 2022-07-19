@@ -59,7 +59,7 @@ type AggregateAliasTypes<
 type ExtractTypes<O extends Record<string, ArgDef<string, ArgType, boolean>>> =
   Expand<
     Partial<AggregateTypes<O> & AggregateAliasTypes<O>> & {
-      _unknown: Array<string>;
+      _rest: Array<string>;
     }
   >;
 
@@ -97,8 +97,8 @@ export function createParser<
 >(schema: O) {
   const parser: Parser<O> = {
     parse(args) {
-      const unknown: Array<string> = [];
-      const parsed: Record<string, unknown> = { _unknown: unknown };
+      const rest: Array<string> = [];
+      const parsed: Record<string, unknown> = { _rest: rest };
       let i = 0;
       const addValue = (name: string, value: unknown) => {
         if (schema[name]?.multiple) {
@@ -119,7 +119,7 @@ export function createParser<
       ) => {
         const argDef = schema[name];
         if (!argDef) {
-          unknown.push(prefix + name);
+          rest.push(prefix + name);
           return;
         }
         if (argDef.type === 'boolean') {
@@ -150,7 +150,7 @@ export function createParser<
             processArg('-', chars[j]!, canHaveValue);
           }
         } else {
-          unknown.push(arg);
+          rest.push(arg);
         }
       }
       return parsed as any;
