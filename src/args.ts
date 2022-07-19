@@ -2,23 +2,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type ArgType = 'boolean' | 'string';
 
-type ArgDefInput<A extends string, T extends ArgType> = {
+type ArgDefInput<A extends string, T extends ArgType, M extends boolean> = {
   alias?: A;
   typeLabel?: string;
   description: string;
   type?: T;
-  lazyMultiple?: boolean;
+  multiple?: M;
 };
 
-type ArgDef<A extends string, T extends ArgType> = Expand<
-  Required<ArgDefInput<A, T>>
+type ArgDef<A extends string, T extends ArgType, M extends boolean> = Expand<
+  Required<ArgDefInput<A, T, M>>
 >;
 
 type RenderOptions = {
   header: string;
 };
 
-type Parser<O extends Record<string, ArgDef<string, ArgType>>> = {
+type Parser<O extends Record<string, ArgDef<string, ArgType, boolean>>> = {
   parse: (args: Array<string>) => ExtractTypes<O>;
   renderUsage: (options: RenderOptions) => string;
 };
@@ -31,62 +31,87 @@ type ToType<T> = T extends 'boolean'
   ? string
   : never;
 
-type ExtractAlias<D> = D extends ArgDef<infer A, infer _T> ? A : never;
-type ExtractType<D> = D extends ArgDef<infer _A, infer T> ? ToType<T> : never;
+type ExtractAlias<D> = D extends ArgDef<infer A, infer _T, infer _M>
+  ? A
+  : never;
 
-type AggregateTypes<O extends Record<string, ArgDef<string, ArgType>>> = {
+type ExtractType<D> = D extends ArgDef<infer _A, infer T, infer M>
+  ? [M] extends [true]
+    ? Array<ToType<T>>
+    : ToType<T>
+  : never;
+
+type AggregateTypes<
+  O extends Record<string, ArgDef<string, ArgType, boolean>>,
+> = {
   [K in keyof O]: ExtractType<O[K]>;
 };
-type AggregateAliasTypes<O extends Record<string, ArgDef<string, ArgType>>> =
-  Omit<
-    {
-      [K in keyof O as ExtractAlias<O[K]>]: ExtractType<O[K]>;
-    },
-    '_'
-  >;
 
-type ExtractTypes<O extends Record<string, ArgDef<string, ArgType>>> = Expand<
-  Partial<AggregateTypes<O> & AggregateAliasTypes<O>> & {
-    _unknown: Array<string>;
-  }
+type AggregateAliasTypes<
+  O extends Record<string, ArgDef<string, ArgType, boolean>>,
+> = Omit<
+  {
+    [K in keyof O as ExtractAlias<O[K]>]: ExtractType<O[K]>;
+  },
+  '_'
 >;
 
-function expand<T>(input: T): T extends ArgDefInput<infer A, infer T>
+type ExtractTypes<O extends Record<string, ArgDef<string, ArgType, boolean>>> =
+  Expand<
+    Partial<AggregateTypes<O> & AggregateAliasTypes<O>> & {
+      _unknown: Array<string>;
+    }
+  >;
+
+function expand<T>(input: T): T extends ArgDefInput<infer A, infer T, infer M>
   ? {
       alias: string extends A ? '_' : A;
       typeLabel: string;
       description: string;
       type: ArgType extends T ? 'string' : T;
-      lazyMultiple: boolean;
+      multiple: [M] extends [true] ? true : false;
     }
   : never {
-  const { alias, typeLabel, description, type, lazyMultiple } =
-    input as unknown as ArgDefInput<string, ArgType>;
+  const { alias, typeLabel, description, type, multiple } =
+    input as unknown as ArgDefInput<string, ArgType, boolean>;
   return {
     alias: alias ?? '_',
     typeLabel: typeLabel ?? '',
     description,
     type: type ?? 'string',
-    lazyMultiple: lazyMultiple ?? false,
+    multiple: multiple ?? false,
   } as any;
 }
 
 function defineArg<
   A extends string,
   T extends ArgType,
-  I extends ArgDefInput<A, T>,
+  M extends boolean,
+  I extends ArgDefInput<A, T, M>,
 >(input: I) {
   return expand(input);
 }
 
-export function createParser<O extends Record<string, ArgDef<string, ArgType>>>(
-  schema: O,
-) {
+export function createParser<
+  O extends Record<string, ArgDef<string, ArgType, boolean>>,
+>(schema: O) {
   const parser: Parser<O> = {
     parse(args) {
       const unknown: Array<string> = [];
       const parsed: Record<string, unknown> = { _unknown: unknown };
       let i = 0;
+      const addValue = (name: string, value: unknown) => {
+        if (schema[name]?.multiple) {
+          const existingValue = parsed[name];
+          if (Array.isArray(existingValue)) {
+            existingValue.push(value);
+          } else {
+            parsed[name] = [value];
+          }
+        } else {
+          parsed[name] = value;
+        }
+      };
       const processArg = (
         prefix: string,
         name: string,
@@ -98,7 +123,7 @@ export function createParser<O extends Record<string, ArgDef<string, ArgType>>>(
           return;
         }
         if (argDef.type === 'boolean') {
-          parsed[name] = true;
+          addValue(name, true);
           return;
         }
         if (!canHaveValue) {
@@ -107,8 +132,7 @@ export function createParser<O extends Record<string, ArgDef<string, ArgType>>>(
             `Option "${name}" must have value of type "${argDef.type}" but none provided.`,
           );
         }
-        const value = args[++i] ?? '';
-        parsed[name] = value;
+        addValue(name, args[++i] ?? '');
       };
       while (true) {
         const arg = args[++i];
@@ -139,9 +163,9 @@ export function createParser<O extends Record<string, ArgDef<string, ArgType>>>(
   return parser;
 }
 
-export function defineSchema<O extends Record<string, ArgDef<string, ArgType>>>(
-  definer: (arg: typeof defineArg) => O,
-) {
+export function defineSchema<
+  O extends Record<string, ArgDef<string, ArgType, boolean>>,
+>(definer: (arg: typeof defineArg) => O) {
   return definer(defineArg);
 }
 

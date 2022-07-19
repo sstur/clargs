@@ -16,7 +16,7 @@ describe('defineArg', () => {
       typeLabel: string;
       description: string;
       type: 'string';
-      lazyMultiple: boolean;
+      multiple: false;
     }>();
 
     const two = defineArg({
@@ -28,7 +28,7 @@ describe('defineArg', () => {
       typeLabel: string;
       description: string;
       type: 'string';
-      lazyMultiple: boolean;
+      multiple: false;
     }>();
 
     const three = defineArg({
@@ -42,7 +42,7 @@ describe('defineArg', () => {
       typeLabel: string;
       description: string;
       type: 'boolean';
-      lazyMultiple: boolean;
+      multiple: false;
     }>();
   });
 
@@ -56,16 +56,21 @@ describe('defineArg', () => {
         typeLabel: '<command>',
         description: 'Some great description',
       }),
+      baz: arg({
+        alias: 'b',
+        typeLabel: '<thing>',
+        description: '',
+        multiple: true,
+      }),
     }));
-
     const parser = createParser(schema);
-
     const parsed = parser.parse([]);
-
     expectTypeOf(parsed).toEqualTypeOf<{
       foo?: string;
       bar?: string;
       X?: string;
+      baz?: Array<string>;
+      b?: Array<string>;
       _unknown: Array<string>;
     }>();
   });
