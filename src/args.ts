@@ -1,4 +1,5 @@
-type ArgType = 'boolean' | 'number' | 'string';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+type ArgType = 'boolean' | 'string';
 
 type ArgDefInput<A extends string, T extends ArgType> = {
   alias?: A;
@@ -29,7 +30,6 @@ function expand<T>(input: T): T extends ArgDefInput<infer A, infer T>
     description,
     type: type ?? 'string',
     lazyMultiple: lazyMultiple ?? false,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any;
 }
 
@@ -39,6 +39,27 @@ export function defineArg<
   I extends ArgDefInput<A, T>,
 >(input: I) {
   return expand(input);
+}
+
+type RenderOptions = {
+  header: string;
+};
+
+type Parser<O extends Record<string, ArgDef<string, ArgType>>> = {
+  parse: (args: Array<string>) => ExtractTypes<O>;
+  renderUsage: (options: RenderOptions) => string;
+};
+
+export function createParser<O extends Record<string, ArgDef<string, ArgType>>>(
+  schema: O,
+) {
+  return schema as any as Parser<O>;
+}
+
+export function defineSchema<O extends Record<string, ArgDef<string, ArgType>>>(
+  schema: O,
+) {
+  return schema;
 }
 
 type ToType<T> = T extends 'boolean'
@@ -63,5 +84,8 @@ type AggregateAliasTypes<O extends Record<string, ArgDef<string, ArgType>>> =
     '_'
   >;
 
-export type ExtractTypes<O extends Record<string, ArgDef<string, ArgType>>> =
-  Expand<Partial<AggregateTypes<O> & AggregateAliasTypes<O>>>;
+type ExtractTypes<O extends Record<string, ArgDef<string, ArgType>>> = Expand<
+  Partial<AggregateTypes<O> & AggregateAliasTypes<O>> & {
+    _unknown: Array<string>;
+  }
+>;

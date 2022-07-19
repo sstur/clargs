@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { expectTypeOf } from 'expect-type';
 
-import { defineArg, ExtractTypes } from '../args';
+import { createParser, defineArg, defineSchema } from '../args';
 
 describe('defineArg', () => {
   it('should typecheck individually', () => {
@@ -44,7 +43,7 @@ describe('defineArg', () => {
   });
 
   it('should aggregate the right types', () => {
-    const args = {
+    const schema = defineSchema({
       foo: defineArg({
         description: 'This is a foo',
       }),
@@ -53,14 +52,17 @@ describe('defineArg', () => {
         typeLabel: '<command>',
         description: 'Some great description',
       }),
-    };
+    });
 
-    const parsed: ExtractTypes<typeof args> = {} as any;
+    const parser = createParser(schema);
+
+    const parsed = parser.parse([]);
 
     expectTypeOf(parsed).toEqualTypeOf<{
       foo?: string;
       bar?: string;
       X?: string;
+      _unknown: Array<string>;
     }>();
   });
 });
