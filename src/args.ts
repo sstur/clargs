@@ -13,34 +13,6 @@ type ArgDef<A extends string, T extends ArgType> = Expand<
   Required<ArgDefInput<A, T>>
 >;
 
-function expand<T>(input: T): T extends ArgDefInput<infer A, infer T>
-  ? {
-      alias: string extends A ? '_' : A;
-      typeLabel: string;
-      description: string;
-      type: ArgType extends T ? 'string' : T;
-      lazyMultiple: boolean;
-    }
-  : never {
-  const { alias, typeLabel, description, type, lazyMultiple } =
-    input as unknown as ArgDefInput<string, ArgType>;
-  return {
-    alias: alias ?? '_',
-    typeLabel: typeLabel ?? '',
-    description,
-    type: type ?? 'string',
-    lazyMultiple: lazyMultiple ?? false,
-  } as any;
-}
-
-export function defineArg<
-  A extends string,
-  T extends ArgType,
-  I extends ArgDefInput<A, T>,
->(input: I) {
-  return expand(input);
-}
-
 type RenderOptions = {
   header: string;
 };
@@ -49,18 +21,6 @@ type Parser<O extends Record<string, ArgDef<string, ArgType>>> = {
   parse: (args: Array<string>) => ExtractTypes<O>;
   renderUsage: (options: RenderOptions) => string;
 };
-
-export function createParser<O extends Record<string, ArgDef<string, ArgType>>>(
-  schema: O,
-) {
-  return schema as any as Parser<O>;
-}
-
-export function defineSchema<O extends Record<string, ArgDef<string, ArgType>>>(
-  definer: (arg: typeof defineArg) => O,
-) {
-  return definer(defineArg);
-}
 
 type ToType<T> = T extends 'boolean'
   ? boolean
@@ -89,3 +49,45 @@ type ExtractTypes<O extends Record<string, ArgDef<string, ArgType>>> = Expand<
     _unknown: Array<string>;
   }
 >;
+
+function expand<T>(input: T): T extends ArgDefInput<infer A, infer T>
+  ? {
+      alias: string extends A ? '_' : A;
+      typeLabel: string;
+      description: string;
+      type: ArgType extends T ? 'string' : T;
+      lazyMultiple: boolean;
+    }
+  : never {
+  const { alias, typeLabel, description, type, lazyMultiple } =
+    input as unknown as ArgDefInput<string, ArgType>;
+  return {
+    alias: alias ?? '_',
+    typeLabel: typeLabel ?? '',
+    description,
+    type: type ?? 'string',
+    lazyMultiple: lazyMultiple ?? false,
+  } as any;
+}
+
+function defineArg<
+  A extends string,
+  T extends ArgType,
+  I extends ArgDefInput<A, T>,
+>(input: I) {
+  return expand(input);
+}
+
+export function createParser<O extends Record<string, ArgDef<string, ArgType>>>(
+  schema: O,
+) {
+  return schema as any as Parser<O>;
+}
+
+export function defineSchema<O extends Record<string, ArgDef<string, ArgType>>>(
+  definer: (arg: typeof defineArg) => O,
+) {
+  return definer(defineArg);
+}
+
+export { defineArg as defineArgForTesting };

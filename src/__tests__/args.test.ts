@@ -1,6 +1,10 @@
 import { expectTypeOf } from 'expect-type';
 
-import { createParser, defineArg, defineSchema } from '../args';
+import {
+  createParser,
+  defineSchema,
+  defineArgForTesting as defineArg,
+} from '../args';
 
 describe('defineArg', () => {
   it('should typecheck individually', () => {
