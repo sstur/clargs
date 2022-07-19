@@ -43,16 +43,16 @@ describe('defineArg', () => {
   });
 
   it('should aggregate the right types', () => {
-    const schema = defineSchema({
-      foo: defineArg({
+    const schema = defineSchema((arg) => ({
+      foo: arg({
         description: 'This is a foo',
       }),
-      bar: defineArg({
+      bar: arg({
         alias: 'X',
         typeLabel: '<command>',
         description: 'Some great description',
       }),
-    });
+    }));
 
     const parser = createParser(schema);
 

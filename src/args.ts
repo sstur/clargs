@@ -57,9 +57,9 @@ export function createParser<O extends Record<string, ArgDef<string, ArgType>>>(
 }
 
 export function defineSchema<O extends Record<string, ArgDef<string, ArgType>>>(
-  schema: O,
+  definer: (arg: typeof defineArg) => O,
 ) {
-  return schema;
+  return definer(defineArg);
 }
 
 type ToType<T> = T extends 'boolean'
