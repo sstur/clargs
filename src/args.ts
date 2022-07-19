@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type ArgType = 'boolean' | 'string';
 
@@ -81,7 +82,61 @@ function defineArg<
 export function createParser<O extends Record<string, ArgDef<string, ArgType>>>(
   schema: O,
 ) {
-  return schema as any as Parser<O>;
+  const parser: Parser<O> = {
+    parse(args) {
+      const unknown: Array<string> = [];
+      const parsed: Record<string, unknown> = { _unknown: unknown };
+      let i = 0;
+      const processArg = (
+        prefix: string,
+        name: string,
+        canHaveValue: boolean,
+      ) => {
+        const argDef = schema[name];
+        if (!argDef) {
+          unknown.push(prefix + name);
+          return;
+        }
+        if (argDef.type === 'boolean') {
+          parsed[name] = true;
+          return;
+        }
+        if (!canHaveValue) {
+          // TODO: Revisit this error
+          throw new Error(
+            `Option "${name}" must have value of type "${argDef.type}" but none provided.`,
+          );
+        }
+        const value = args[++i] ?? '';
+        parsed[name] = value;
+      };
+      while (true) {
+        const arg = args[++i];
+        if (arg === undefined) {
+          break;
+        }
+        if (arg.startsWith('--')) {
+          const name = arg.slice(2);
+          processArg('--', name, true);
+        } else if (arg.startsWith('-')) {
+          const chars = arg.slice(1);
+          const lastIndex = chars.length - 1;
+          for (let j = 0; j < chars.length; j++) {
+            const canHaveValue = j === lastIndex;
+            processArg('-', chars[j]!, canHaveValue);
+          }
+        } else {
+          unknown.push(arg);
+        }
+      }
+      return parsed as any;
+    },
+    renderUsage(options) {
+      // TODO
+      return options.header + '\n';
+    },
+  };
+  return parser;
 }
 
 export function defineSchema<O extends Record<string, ArgDef<string, ArgType>>>(
