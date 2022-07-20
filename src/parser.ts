@@ -1,9 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { ParsedResult, Schema } from './args';
-
-type RenderOptions = {
-  header: string;
-};
+import { renderUsage, type RenderOptions } from './usage';
 
 export function createParser<O extends Schema>(schema: O) {
   const shortToLong = new Map<string, string>();
@@ -112,9 +109,9 @@ export function createParser<O extends Schema>(schema: O) {
       result._rest = rest;
       return result as ParsedResult<O>;
     },
+
     renderUsage(options: RenderOptions): string {
-      // TODO
-      return options.header + '\n';
+      return renderUsage(schema, options);
     },
   };
 }
