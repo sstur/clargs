@@ -109,16 +109,16 @@ type ExtractType<D extends OptionDef<unknown>> = D extends FlagDef
   : never;
 
 type RequiredTypes<O extends Schema> = {
-  [K in keyof O as O[K] extends ArgOptionalDef<unknown>
+  [K in keyof O as O[K] extends FlagDef | ArgOptionalDef<unknown>
     ? never
     : K]: ExtractType<O[K]>;
 };
 type OptionalTypes<O extends Schema> = {
-  [K in keyof O as O[K] extends ArgOptionalDef<unknown>
+  [K in keyof O as O[K] extends FlagDef | ArgOptionalDef<unknown>
     ? K
     : never]?: ExtractType<O[K]>;
 };
 
 export type ParsedResult<O extends Schema> = Expand<
-  RequiredTypes<O> & OptionalTypes<O>
+  RequiredTypes<O> & OptionalTypes<O> & { _rest: Array<string> }
 >;
