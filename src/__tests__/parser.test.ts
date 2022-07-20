@@ -1,7 +1,7 @@
 import { defineSchema } from '../args';
 import { createParser } from '../parser';
 
-describe('defineArg', () => {
+describe('parser', () => {
   const schema = defineSchema(({ arg, argList, flag }) => ({
     data: arg({
       alias: 'd',
