@@ -1,5 +1,4 @@
 import typescript from '@rollup/plugin-typescript';
-import prettier from 'rollup-plugin-prettier';
 import dts from 'rollup-plugin-dts';
 
 export default [
@@ -14,9 +13,6 @@ export default [
     plugins: [
       typescript({
         module: 'esnext',
-      }),
-      prettier({
-        parser: 'babel',
       }),
     ],
   },
