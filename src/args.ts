@@ -49,7 +49,9 @@ type Definers = {
   flag: FlagDefiner;
 };
 
-function defineSchema<O extends Record<string, OptionDef<unknown>>>(
+export type Schema = Record<string, OptionDef<unknown>>;
+
+export function defineSchema<O extends Schema>(
   getSchema: (definers: Definers) => O,
 ) {
   return getSchema({ arg, argList, flag });
@@ -106,33 +108,17 @@ type ExtractType<D extends OptionDef<unknown>> = D extends FlagDef
   ? Array<T>
   : never;
 
-type RequiredTypes<O extends Record<string, OptionDef<unknown>>> = {
+type RequiredTypes<O extends Schema> = {
   [K in keyof O as O[K] extends ArgOptionalDef<unknown>
     ? never
     : K]: ExtractType<O[K]>;
 };
-type OptionalTypes<O extends Record<string, OptionDef<unknown>>> = {
+type OptionalTypes<O extends Schema> = {
   [K in keyof O as O[K] extends ArgOptionalDef<unknown>
     ? K
     : never]?: ExtractType<O[K]>;
 };
 
-type ParsedResult<O extends Record<string, OptionDef<unknown>>> = Expand<
+export type ParsedResult<O extends Schema> = Expand<
   RequiredTypes<O> & OptionalTypes<O>
 >;
-
-// ==========
-
-const _result = defineSchema(({ arg, flag }) => ({
-  foo: arg({
-    alias: 'f',
-    typeLabel: '<foo>',
-    description: 'Foo',
-    optional: true,
-    validator: (x) => Number(x),
-  }),
-  bar: argList({ alias: 'b', typeLabel: '<bar>', description: 'Bar' }),
-  baz: flag({ alias: 'z', description: 'Baz' }),
-}));
-
-type Foo = ParsedResult<typeof _result>;
