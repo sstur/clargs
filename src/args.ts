@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Expand } from './types';
 
 /** If T is a function, get the return type, else fall back to U */
 type ReturnTypeOr<T, U> = T extends (...args: Array<any>) => any
