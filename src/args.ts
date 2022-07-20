@@ -13,7 +13,15 @@ type ArgDef<T> = {
   validator?: (input: string) => T;
 };
 
-type ArgDefInput<T> = Omit<ArgDef<T>, 'type'>;
+type ArgOptionalDef<T> = {
+  type: 'argOptional';
+  alias?: string;
+  typeLabel: string;
+  description: string;
+  validator?: (input: string) => T;
+};
+
+type ArgDefInput<T> = Expand<Omit<ArgDef<T>, 'type'> & { optional?: boolean }>;
 
 type ArgListDef<T> = {
   type: 'argList';
@@ -33,7 +41,7 @@ type FlagDef = {
 
 type FlagDefInput = Omit<FlagDef, 'type'>;
 
-type OptionDef<T> = ArgDef<T> | ArgListDef<T> | FlagDef;
+type OptionDef<T> = ArgDef<T> | ArgOptionalDef<T> | ArgListDef<T> | FlagDef;
 
 type Definers = {
   arg: ArgDefiner;
@@ -47,12 +55,25 @@ function defineSchema<O extends Record<string, OptionDef<unknown>>>(
   return getSchema({ arg, argList, flag });
 }
 
+type ArgDefPossiblyOptional<T, O> = [O] extends [true]
+  ? ArgOptionalDef<T>
+  : ArgDef<T>;
+
 function arg<T, I extends ArgDefInput<T>>(
   input: I,
-): 'validator' extends keyof I
-  ? ArgDef<ReturnTypeOr<I['validator'], string>>
-  : ArgDef<string> {
-  return { type: 'arg', ...input } as any;
+): ArgDefPossiblyOptional<
+  'validator' extends keyof I ? ReturnTypeOr<I['validator'], string> : string,
+  'optional' extends keyof I
+    ? I['optional'] extends true
+      ? true
+      : false
+    : false
+> {
+  const { optional, ...rest } = input;
+  const result = optional
+    ? { type: 'argOptional', ...rest }
+    : { type: 'arg', ...rest };
+  return result as any;
 }
 
 type ArgDefiner = typeof arg;
@@ -79,13 +100,26 @@ type ExtractType<D extends OptionDef<unknown>> = D extends FlagDef
   ? boolean
   : D extends ArgDef<infer T>
   ? T
+  : D extends ArgOptionalDef<infer T>
+  ? T
   : D extends ArgListDef<infer T>
   ? Array<T>
   : never;
 
-type ParsedResult<O extends Record<string, OptionDef<unknown>>> = {
-  [K in keyof O]: ExtractType<O[K]>;
+type RequiredTypes<O extends Record<string, OptionDef<unknown>>> = {
+  [K in keyof O as O[K] extends ArgOptionalDef<unknown>
+    ? never
+    : K]: ExtractType<O[K]>;
 };
+type OptionalTypes<O extends Record<string, OptionDef<unknown>>> = {
+  [K in keyof O as O[K] extends ArgOptionalDef<unknown>
+    ? K
+    : never]?: ExtractType<O[K]>;
+};
+
+type ParsedResult<O extends Record<string, OptionDef<unknown>>> = Expand<
+  RequiredTypes<O> & OptionalTypes<O>
+>;
 
 // ==========
 
@@ -94,6 +128,7 @@ const _result = defineSchema(({ arg, flag }) => ({
     alias: 'f',
     typeLabel: '<foo>',
     description: 'Foo',
+    optional: true,
     validator: (x) => Number(x),
   }),
   bar: argList({ alias: 'b', typeLabel: '<bar>', description: 'Bar' }),
