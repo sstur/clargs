@@ -5,7 +5,7 @@ export default [
   {
     input: 'src/index.ts',
     output: {
-      dir: 'lib',
+      dir: 'build',
       format: 'cjs',
       strict: false,
       esModule: false,
@@ -17,9 +17,9 @@ export default [
     ],
   },
   {
-    input: 'lib/dts/index.d.ts',
+    input: 'build/dts/index.d.ts',
     output: {
-      file: 'lib/index.d.ts',
+      file: 'build/index.d.ts',
       format: 'es',
     },
     plugins: [dts()],

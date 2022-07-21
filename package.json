@@ -3,10 +3,11 @@
   "version": "1.4.0",
   "description": "A fully-typed schema-based parser for command line args",
   "files": [
-    "lib"
+    "index.js",
+    "index.d.ts"
   ],
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
     "lint": "eslint --max-warnings 0 \"src/**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit -p .",
@@ -14,8 +15,9 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
     "jest": "jest --coverage --passWithNoTests",
     "test": "yarn lint && yarn typecheck && yarn format:check && yarn jest",
-    "clean": "rm -rf lib coverage",
-    "build": "yarn clean && tsc -p tsconfig.build.json && rollup -c && rm -rf lib/dts && prettier --write lib",
+    "clean": "rm -rf build coverage",
+    "copy-files": "cp README.md package.json build/",
+    "build": "yarn clean && tsc -p tsconfig.build.json && rollup -c && rm -rf build/dts && yarn copy-files && prettier --write build",
     "prepublishOnly": "yarn clean && yarn build"
   },
   "dependencies": {},
