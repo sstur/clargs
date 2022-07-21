@@ -17,8 +17,7 @@
     "test": "yarn lint && yarn typecheck && yarn format:check && yarn jest",
     "clean": "rm -rf build coverage",
     "copy-files": "cp README.md build/ && lean-package > build/package.json",
-    "build": "yarn clean && tsc -p tsconfig.build.json && rollup -c && rm -rf build/dts && yarn copy-files && prettier --write build",
-    "prepublishOnly": "yarn clean && yarn build"
+    "build": "yarn clean && tsc -p tsconfig.build.json && rollup -c && rm -rf build/dts && yarn copy-files && prettier --write build"
   },
   "dependencies": {},
   "devDependencies": {
