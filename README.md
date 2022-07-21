@@ -1,3 +1,3 @@
 # clargs
 
-This package contains something amazing.
+Fully-typed command line args parser.
