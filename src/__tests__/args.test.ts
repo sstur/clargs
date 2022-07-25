@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { expectTypeOf } from 'expect-type';
 
 import { defineSchema, type ParsedResult } from '../args';
@@ -27,8 +26,7 @@ describe('defineArg', () => {
       }),
     }));
 
-    const parsed: ParsedResult<typeof schema> = null as any;
-    expectTypeOf(parsed).toEqualTypeOf<{
+    expectTypeOf<ParsedResult<typeof schema>>().toEqualTypeOf<{
       foo: number;
       thing: Array<number>;
       bar: Array<string>;
@@ -66,8 +64,7 @@ describe('defineArg', () => {
       }),
     }));
 
-    const parsed: ParsedResult<typeof schema> = null as any;
-    expectTypeOf(parsed).toEqualTypeOf<{
+    expectTypeOf<ParsedResult<typeof schema>>().toEqualTypeOf<{
       message: string;
       author: string;
       file: string;
