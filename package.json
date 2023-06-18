@@ -43,7 +43,7 @@
   "eslintConfig": {
     "extends": "xt",
     "ignorePatterns": [
-      "/lib"
+      "/build"
     ],
     "rules": {
       "@typescript-eslint/consistent-type-imports": "warn"
