@@ -54,5 +54,7 @@
     "trailingComma": "all",
     "arrowParens": "always"
   },
+  "homepage": "https://github.com/sstur/clargs",
+  "repository": "github:sstur/clargs",
   "license": "ISC"
 }
