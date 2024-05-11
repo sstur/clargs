@@ -6,5 +6,5 @@
     "declarationDir": "build/dts",
     "emitDeclarationOnly": true
   },
-  "exclude": ["src/**/*.test.ts", "src/demo/**/*.ts"]
+  "exclude": ["src/**/*.test.ts"]
 }
