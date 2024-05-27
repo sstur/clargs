@@ -9,6 +9,9 @@ Usage: curl [options...] <url>
  -i, --include       Include protocol response headers in the output
      --list-only     List only mode
  -o, --output <file>  Write to file instead of stdout
+ -p                  Operate through an HTTP proxy tunnel (using CONNECT)
+ -r <range>          Retrieve only the bytes within RANGE
+ -v, --verbose       Make the operation more talkative
 `.trimStart();
 
 describe('usage', () => {
@@ -35,11 +38,26 @@ describe('usage', () => {
     'list-only': flag({
       description: 'List only mode',
     }),
+    // Short flag without alias
+    p: flag({
+      description: 'Operate through an HTTP proxy tunnel (using CONNECT)',
+    }),
+    // Short arg without alias
+    r: arg({
+      typeLabel: '<range>',
+      optional: true,
+      description: 'Retrieve only the bytes within RANGE',
+    }),
     output: arg({
       alias: 'o',
       typeLabel: '<file>',
       optional: true,
       description: 'Write to file instead of stdout',
+    }),
+    // Short one as primary, long one as alias
+    v: flag({
+      alias: 'verbose',
+      description: 'Make the operation more talkative',
     }),
   }));
 
