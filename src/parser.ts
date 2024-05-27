@@ -37,7 +37,6 @@ export function createParser<O extends Schema>(schema: O) {
         if (!definition) {
           // TODO: Revisit this error
           throw new Error(`Unexpected option "${prefix + key}"`);
-          return;
         }
         if (definition.type === 'flag') {
           addValue(name, true);
