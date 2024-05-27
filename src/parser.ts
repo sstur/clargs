@@ -3,11 +3,11 @@ import type { ParsedResult, Schema } from './args';
 import { renderUsage, type RenderOptions } from './usage';
 
 export function createParser<O extends Schema>(schema: O) {
-  const shortToLong = new Map<string, string>();
+  const aliasToPrimary = new Map<string, string>();
   for (const [name, definition] of Object.entries(schema)) {
     const { alias } = definition;
     if (alias !== undefined) {
-      shortToLong.set(alias, name);
+      aliasToPrimary.set(alias, name);
     }
   }
   return {
@@ -32,7 +32,7 @@ export function createParser<O extends Schema>(schema: O) {
         key: string,
         canHaveValue: boolean,
       ) => {
-        const name = shortToLong.get(key) ?? key;
+        const name = aliasToPrimary.get(key) ?? key;
         const definition = schema[name];
         if (!definition) {
           // TODO: Revisit this error
