@@ -1,6 +1,6 @@
 yarn build
 if [ $? -eq 0 ]; then
-    pushd build
+    cd build
     npm publish
-    popd
+    cd ..
 fi
