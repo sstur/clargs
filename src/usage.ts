@@ -2,6 +2,7 @@ import type { Schema } from './args';
 
 export type RenderOptions = {
   header: string;
+  sort?: boolean;
 };
 
 export function renderUsage<O extends Schema>(
@@ -11,7 +12,10 @@ export function renderUsage<O extends Schema>(
   const { header } = options;
   const lines: Array<string> = [];
   lines.push(header);
-  const items = Object.entries(schema).sort(([a], [b]) => a.localeCompare(b));
+  const items = Object.entries(schema);
+  if (options.sort !== false) {
+    items.sort(([a], [b]) => a.localeCompare(b));
+  }
   for (const [name, definition] of items) {
     const { alias } = definition;
     // At this point `names` can be any combination of 1 or 2 short/long names

@@ -1,7 +1,8 @@
 import { defineSchema } from '../args';
 import { createParser } from '../parser';
+import { renderUsage } from '../usage';
 
-const expectedOutput = `
+const expectedOutput1 = `
 Usage: curl [options...] <url>
  -d, --data <data>   HTTP POST data
  -H, --header <header/@file>  Pass custom header(s) to server
@@ -12,6 +13,12 @@ Usage: curl [options...] <url>
  -p                  Operate through an HTTP proxy tunnel (using CONNECT)
  -r <range>          Retrieve only the bytes within RANGE
  -v, --verbose       Make the operation more talkative
+`.trimStart();
+
+const expectedOutput2 = `
+Usage: foo [options...]
+ -h, --help          Display help
+ -a, --add <item>    Add item
 `.trimStart();
 
 describe('usage', () => {
@@ -65,6 +72,26 @@ describe('usage', () => {
     const parser = createParser(schema);
     const header = `Usage: curl [options...] <url>`;
     const usage = parser.renderUsage({ header });
-    expect(usage).toEqual(expectedOutput);
+    expect(usage).toEqual(expectedOutput1);
+  });
+
+  it('should render usage without sorting', () => {
+    const schema = defineSchema(({ arg, flag }) => ({
+      help: flag({
+        alias: 'h',
+        description: 'Display help',
+      }),
+      add: arg({
+        alias: 'a',
+        typeLabel: '<item>',
+        optional: true,
+        description: 'Add item',
+      }),
+    }));
+    const usage = renderUsage(schema, {
+      header: 'Usage: foo [options...]',
+      sort: false,
+    });
+    expect(usage).toEqual(expectedOutput2);
   });
 });
